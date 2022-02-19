@@ -1,0 +1,11 @@
+{
+    "telegram": {
+        "token": "bot21xxxx:xxxxx",
+        "chat_id": "304xxxx"
+    },
+    "main": {
+        "url": "https://sg.cytron.io/c-raspberry-pi/c-raspberry-pi-main-board/c-raspberry-pi-zero/p-raspberry-pi-zero-2-w-wch",
+        "selector": "//*[@id=\"product\"]/div[2]/div/select/option[@value=\"778\"]",
+        "interval_in_minutes" : 1
+    }
+}
