@@ -78,6 +78,8 @@ func main() {
 	}
 	configuration := loadConfiguration(configFileLocation)
 
+	sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, "service notify-web-changes started")
+
 	var oldValue = ""
 	for {
 		time.Sleep(time.Duration(configuration.Main.Interval) * time.Minute)
