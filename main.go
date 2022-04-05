@@ -93,6 +93,9 @@ func main() {
 			log.Printf("cannot parse selector: %s", err.Error())
 			continue
 		}
+
+		log.Printf("watch: %s", watch.Data)
+
 		newValue := htmlquery.OutputHTML(watch, true)
 		if oldValue == "" || oldValue == newValue {
 			log.Println("No value change detected")
