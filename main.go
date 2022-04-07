@@ -94,16 +94,20 @@ func main() {
 			continue
 		}
 
-		log.Printf("watch: %s", watch.Data)
-
-		newValue := htmlquery.OutputHTML(watch, true)
-		if oldValue == "" || oldValue == newValue {
-			log.Println("No value change detected")
-			oldValue = newValue
+		if watch != nil {
+			newValue := htmlquery.OutputHTML(watch, true)
+			if oldValue == "" || oldValue == newValue {
+				log.Println("No value change detected")
+				oldValue = newValue
+			} else {
+				log.Printf("Value %s has change to %s", oldValue, newValue)
+				oldValue = newValue
+				sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, newValue)
+			}
 		} else {
-			log.Printf("Value %s has change to %s", oldValue, newValue)
-			oldValue = newValue
-			sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, newValue)
+			log.Printf("watch is nill")
+			sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, "watch is nill")
 		}
+
 	}
 }
