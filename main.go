@@ -80,7 +80,8 @@ func main() {
 
 	sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, "service notify-web-changes started")
 
-	var oldValue = ""
+	var valueToWatch [10]string
+
 	for {
 		time.Sleep(time.Duration(configuration.Main.Interval) * time.Minute)
 		doc, err := htmlquery.LoadURL(configuration.Main.Url)
@@ -88,22 +89,33 @@ func main() {
 			log.Printf("cannot load url: %s", err.Error())
 			continue
 		}
-		watch, err := htmlquery.Query(doc, configuration.Main.Selector)
+		watch, err := htmlquery.QueryAll(doc, configuration.Main.Selector)
 		if err != nil {
 			log.Printf("cannot parse selector: %s", err.Error())
 			continue
 		}
-
+		var notificationMessage string
+		var valueChanged bool
 		if watch != nil {
-			newValue := htmlquery.OutputHTML(watch, true)
-			if oldValue == "" || oldValue == newValue {
-				log.Println("No value change detected")
-				oldValue = newValue
-			} else {
-				log.Printf("Value %s has change to %s", oldValue, newValue)
-				oldValue = newValue
-				sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, newValue)
+			for i, n := range watch {
+				if n != nil {
+					extracted := fmt.Sprintf("%d %s(%s)\n", i, htmlquery.InnerText(n), htmlquery.SelectAttr(n, "class"))
+
+					if valueToWatch[i] != extracted {
+						notificationMessage += extracted
+						valueChanged = true
+						log.Printf("Value has change: %s\n", extracted)
+					}
+
+					valueToWatch[i] = extracted
+				}
 			}
+			if valueChanged {
+				sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, notificationMessage)
+			} else {
+				log.Println("No change")
+			}
+			valueChanged = false
 		} else {
 			log.Printf("watch is nill")
 			sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, "watch is nill")
