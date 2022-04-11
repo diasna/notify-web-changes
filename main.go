@@ -42,7 +42,7 @@ func loadConfiguration(path string) Configuration {
 	return configuration
 }
 
-func sendTelegramMessage(token string, chatId string, message string) {
+func sendTelegramMessage(token string, chatId string, message string) bool {
 	var endpoint = fmt.Sprintf("https://api.telegram.org/%s/sendMessage", token)
 	data := url.Values{}
 	data.Set("chat_id", chatId)
@@ -60,12 +60,16 @@ func sendTelegramMessage(token string, chatId string, message string) {
 	if err != nil {
 		log.Printf("cannot send telegram message: %s", err.Error())
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Printf("cannot send telegram message, Status: %s", res.Status)
+	if res != nil {
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			log.Printf("cannot send telegram message, Status: %s", res.Status)
+		}
+		log.Printf("Send notification response: %s\n", string(body))
+		return true
 	}
-	log.Printf("Send notification response: %s\n", string(body))
+	return false
 }
 
 func main() {
@@ -81,7 +85,7 @@ func main() {
 	sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, "service notify-web-changes started")
 
 	var valueToWatch [10]string
-
+	isNotificationSent := true
 	for {
 		time.Sleep(time.Duration(configuration.Main.Interval) * time.Minute)
 		doc, err := htmlquery.LoadURL(configuration.Main.Url)
@@ -96,6 +100,7 @@ func main() {
 		}
 		var notificationMessage string
 		var valueChanged bool
+
 		if watch != nil {
 			for i, n := range watch {
 				if n != nil {
@@ -110,8 +115,8 @@ func main() {
 					valueToWatch[i] = extracted
 				}
 			}
-			if valueChanged {
-				sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, notificationMessage)
+			if valueChanged || !isNotificationSent {
+				isNotificationSent = sendTelegramMessage(configuration.Telegram.Token, configuration.Telegram.ChatId, notificationMessage)
 			} else {
 				log.Println("No change")
 			}
