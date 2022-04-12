@@ -104,7 +104,7 @@ func main() {
 		if watch != nil {
 			for i, n := range watch {
 				if n != nil {
-					extracted := fmt.Sprintf("%d %s(%s)\n", i, htmlquery.InnerText(n), htmlquery.SelectAttr(n, "class"))
+					extracted := fmt.Sprintf("%s(%s)\n", htmlquery.InnerText(n), htmlquery.SelectAttr(n, "class"))
 
 					if valueToWatch[i] != extracted {
 						notificationMessage += extracted
