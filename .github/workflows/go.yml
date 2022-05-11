@@ -19,10 +19,10 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      run: go build -v ./main.go
+      run: env GOOS=linux GOARCH=arm go build -v ./main.go -o ./main_arm
       
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
         path: |
-          ./main
+          ./main_arm
